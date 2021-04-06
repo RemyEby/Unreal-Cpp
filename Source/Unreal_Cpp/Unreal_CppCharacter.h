@@ -71,6 +71,7 @@ class AUnreal_CppCharacter : public ACharacter
 
 	float _timer = 0.f;
 	bool _shoot = false;
+	bool _isReloading = false;
 
 public:
 	AUnreal_CppCharacter();

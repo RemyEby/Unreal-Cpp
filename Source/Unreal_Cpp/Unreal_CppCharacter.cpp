@@ -144,56 +144,59 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 void AUnreal_CppCharacter::OnFire()
 {
-	if (_ammo > 0)
+	if (!_isReloading)
 	{
-		_ammo--;
+		if (_ammo > 0)
+		{
+			_ammo--;
 
-		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%d /30 ammo"), _ammo));
-		UE_LOG(LogTemp, Warning, TEXT("%d"), _ammo);
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%d /30 ammo"), _ammo));
+			UE_LOG(LogTemp, Warning, TEXT("%d"), _ammo);
 
-		// try and fire a projectile
-		auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
-		auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
+			// try and fire a projectile
+			auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
+			auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
 
-		FHitResult OutHit;
-		FCollisionQueryParams Collisions;
+			FHitResult OutHit;
+			FCollisionQueryParams Collisions;
 
-		if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
-			if (pMuzzleParticle) {
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
+			if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
+				if (pMuzzleParticle) {
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
 			
-				if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
-				{
-					AEnemy* enemy = (AEnemy*)OutHit.GetActor();
-					enemy->GetDamage(_damage);
+					if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
+					{
+						AEnemy* enemy = (AEnemy*)OutHit.GetActor();
+						enemy->GetDamage(_damage);
+					}
 				}
 			}
-		}
 
-		// try and play the sound if specified
-		if (FireSound != nullptr)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-		}
-
-		// try and play a firing animation if specified
-		if (FireAnimation != nullptr)
-		{
-			// Get the animation object for the arms mesh
-			UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-			if (AnimInstance != nullptr)
+			// try and play the sound if specified
+			if (FireSound != nullptr)
 			{
-				AnimInstance->Montage_Play(FireAnimation, 1.f);
+				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 			}
+
+			// try and play a firing animation if specified
+			if (FireAnimation != nullptr)
+			{
+				// Get the animation object for the arms mesh
+				UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+				if (AnimInstance != nullptr)
+				{
+					AnimInstance->Montage_Play(FireAnimation, 1.f);
+				}
+			}
+
 		}
-
+		else {
+			// Attendre quelques secondes que ce soit rechargé
+			UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
+			Reload();
+		}
 	}
-	else {
-		// Attendre quelques secondes que ce soit rechargé
-		UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
-	}
-
 }
 
 void AUnreal_CppCharacter::ShootToTrue()
@@ -207,9 +210,18 @@ void AUnreal_CppCharacter::ShootToFalse()
 
 void AUnreal_CppCharacter::Reload()
 {
-	UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
-	_ammo = 30;
-	// Utiliser le _reloadTime pour mettre un délai sur le reload lol 
+	if (!_isReloading)
+	{
+		_isReloading = true;
+		_ammo = 0;
+		UE_LOG(LogTemp, Warning, TEXT("RELOADING ..."), _ammo);
+		// Utiliser le _reloadTime pour mettre un délai sur le reload lol 
+		FTimerHandle handle;
+		GetWorld()->GetTimerManager().SetTimer(handle, [this]() {
+			_ammo = 30;
+			_isReloading = false;
+		}, 2.0f, 0);
+	}
 }
 
 // Called every frame
