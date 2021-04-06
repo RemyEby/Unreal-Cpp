@@ -215,12 +215,13 @@ void AUnreal_CppCharacter::Reload()
 		_isReloading = true;
 		_ammo = 0;
 		UE_LOG(LogTemp, Warning, TEXT("RELOADING ..."), _ammo);
-		// Utiliser le _reloadTime pour mettre un délai sur le reload lol 
+		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation());
+		
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, [this]() {
 			_ammo = 30;
 			_isReloading = false;
-		}, 2.0f, 0);
+		}, 2.5f, 0);
 	}
 }
 

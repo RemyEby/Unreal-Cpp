@@ -13,14 +13,20 @@ class UNREAL_CPP_API AEnemy : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	UPROPERTY(EditDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* MeshEnemy;
+
+	UPROPERTY(EditDefaultsOnly, Category = Mesh)
+	UAnimSequence* DeathAnimation;
 
 	FVector PlayerLocation;
 
 	UPROPERTY(EditDefaultsOnly)
 	float MovementSpeed = .5f;
 	
+	UPROPERTY(EditDefaultsOnly)
+	float RotationSpeed = 200.f;
+
 	UPROPERTY(EditDefaultsOnly)
 	float _life = 1.0f;
 
