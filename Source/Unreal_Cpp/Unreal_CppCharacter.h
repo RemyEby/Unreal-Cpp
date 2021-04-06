@@ -20,7 +20,7 @@ class AUnreal_CppCharacter : public ACharacter
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, Category = Mesh)
-	class UParticleSystem* Particle;
+	class UParticleSystem* pMuzzleParticle;
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)

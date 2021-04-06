@@ -77,7 +77,7 @@ AUnreal_CppCharacter::AUnreal_CppCharacter()
 
 	VR_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("VR_MuzzleLocation"));
 	VR_MuzzleLocation->SetupAttachment(VR_Gun);
-	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));
+	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));	
 	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));		// Counteract the rotation of the VR gun model.
 
 	// Uncomment the following line to turn motion controllers on by default:
@@ -141,7 +141,18 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 void AUnreal_CppCharacter::OnFire()
 {
 	// try and fire a projectile
-	//if(UWorld::LineTraceSingleByChannel())
+	auto StartLocation = FirstPersonCameraComponent->GetForwardVector();
+	auto EndLocation = ((StartLocation * 1000) + VR_MuzzleLocation->GetComponentLocation());
+
+	FHitResult OutHit;
+	FCollisionQueryParams Collisions;
+
+	if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
+		if (pMuzzleParticle) {
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
+			//UE_LOG(LogTemp, Log, TEXT("TEST"));
+		}
+	}
 
 	// try and play the sound if specified
 	if (FireSound != nullptr)
