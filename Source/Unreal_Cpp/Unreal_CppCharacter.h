@@ -21,6 +21,9 @@ class AUnreal_CppCharacter : public ACharacter
 
 	UPROPERTY(EditDefaultsOnly, Category = Mesh)
 	class UParticleSystem* pMuzzleParticle;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Mesh)
+	class UParticleSystem* pImpactParticle;
 
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)

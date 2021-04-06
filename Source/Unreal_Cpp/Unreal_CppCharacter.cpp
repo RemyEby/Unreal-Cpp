@@ -141,16 +141,18 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 void AUnreal_CppCharacter::OnFire()
 {
 	// try and fire a projectile
-	auto StartLocation = FirstPersonCameraComponent->GetForwardVector();
-	auto EndLocation = ((StartLocation * 1000) + VR_MuzzleLocation->GetComponentLocation());
+	auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
+	auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
 
 	FHitResult OutHit;
-	FCollisionQueryParams Collisions;
+	FCollisionQueryParams Collisions(FName(TEXT("InteractTrace")), true, NULL);
+	Collisions.bTraceComplex = true;
+	Collisions.bReturnPhysicalMaterial = true;
 
 	if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
 		if (pMuzzleParticle) {
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
-			//UE_LOG(LogTemp, Log, TEXT("TEST"));
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
 		}
 	}
 
