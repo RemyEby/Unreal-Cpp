@@ -57,6 +57,9 @@ class AUnreal_CppCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UMotionControllerComponent* L_MotionController;
 
+	UPROPERTY(EditDefaultsOnly)
+	float _damage = 5.0f;
+
 public:
 	AUnreal_CppCharacter();
 
@@ -91,6 +94,8 @@ public:
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint8 bUsingMotionControllers : 1;
+
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	

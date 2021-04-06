@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "Enemy.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -145,14 +146,21 @@ void AUnreal_CppCharacter::OnFire()
 	auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
 
 	FHitResult OutHit;
-	FCollisionQueryParams Collisions(FName(TEXT("InteractTrace")), true, NULL);
-	Collisions.bTraceComplex = true;
-	Collisions.bReturnPhysicalMaterial = true;
+	FCollisionQueryParams Collisions;
 
 	if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
 		if (pMuzzleParticle) {
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
+			
+			if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
+			{
+				AEnemy* tsh = (AEnemy*)OutHit.GetActor();
+				tsh->GetDamage(_damage);
+
+
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Toucher : ")));
+			}
 		}
 	}
 
@@ -172,6 +180,12 @@ void AUnreal_CppCharacter::OnFire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+}
+
+// Called every frame
+void AUnreal_CppCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 void AUnreal_CppCharacter::OnResetVR()
