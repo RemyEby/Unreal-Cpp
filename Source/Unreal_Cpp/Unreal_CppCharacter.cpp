@@ -119,7 +119,8 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Bind fire event
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AUnreal_CppCharacter::OnFire);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AUnreal_CppCharacter::ShootToTrue);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AUnreal_CppCharacter::ShootToFalse);
 
 	// Enable touchscreen input
 	EnableTouchscreenMovement(PlayerInputComponent);
@@ -155,10 +156,8 @@ void AUnreal_CppCharacter::OnFire()
 			
 			if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
 			{
-				AEnemy* tsh = (AEnemy*)OutHit.GetActor();
-				tsh->GetDamage(_damage);
-
-
+				AEnemy* enemy = (AEnemy*)OutHit.GetActor();
+				enemy->GetDamage(_damage);
 				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Toucher : ")));
 			}
 		}
@@ -182,10 +181,30 @@ void AUnreal_CppCharacter::OnFire()
 	}
 }
 
+
+void AUnreal_CppCharacter::ShootToTrue()
+{
+	_shoot = true;
+}
+void AUnreal_CppCharacter::ShootToFalse()
+{
+	_shoot = false;
+}
+
 // Called every frame
 void AUnreal_CppCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	_timer += DeltaTime;
+	if (_shoot)
+	{
+		if (_timer >= _rifleCooldwn)
+		{
+			OnFire();
+			_timer = 0;
+		}
+	}
 }
 
 void AUnreal_CppCharacter::OnResetVR()

@@ -60,6 +60,12 @@ class AUnreal_CppCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly)
 	float _damage = 5.0f;
 
+	UPROPERTY(EditDefaultsOnly)
+	float _rifleCooldwn = .2f;
+
+	float _timer = 0.f;
+	bool _shoot = false;
+
 public:
 	AUnreal_CppCharacter();
 
@@ -101,6 +107,9 @@ protected:
 	
 	/** Fires a projectile. */
 	void OnFire();
+
+	void ShootToTrue();
+	void ShootToFalse();
 
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();
