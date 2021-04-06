@@ -63,6 +63,12 @@ class AUnreal_CppCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly)
 	float _rifleCooldwn = .2f;
 
+	UPROPERTY(EditDefaultsOnly)
+	int _ammo = 30;
+
+	UPROPERTY(EditDefaultsOnly)
+	float _reloadTime = 2.f;
+
 	float _timer = 0.f;
 	bool _shoot = false;
 
@@ -110,6 +116,8 @@ protected:
 
 	void ShootToTrue();
 	void ShootToFalse();
+
+	void Reload();
 
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();

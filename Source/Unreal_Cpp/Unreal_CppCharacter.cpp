@@ -12,6 +12,7 @@
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Enemy.h"
+#include <iostream>
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -121,6 +122,7 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AUnreal_CppCharacter::ShootToTrue);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AUnreal_CppCharacter::ShootToFalse);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AUnreal_CppCharacter::Reload);
 
 	// Enable touchscreen input
 	EnableTouchscreenMovement(PlayerInputComponent);
@@ -142,45 +144,57 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 void AUnreal_CppCharacter::OnFire()
 {
-	// try and fire a projectile
-	auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
-	auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
+	if (_ammo > 0)
+	{
+		_ammo--;
 
-	FHitResult OutHit;
-	FCollisionQueryParams Collisions;
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%d /30 ammo"), _ammo));
+		UE_LOG(LogTemp, Warning, TEXT("%d"), _ammo);
 
-	if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
-		if (pMuzzleParticle) {
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
+		// try and fire a projectile
+		auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
+		auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
+
+		FHitResult OutHit;
+		FCollisionQueryParams Collisions;
+
+		if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
+			if (pMuzzleParticle) {
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
 			
-			if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
-			{
-				AEnemy* enemy = (AEnemy*)OutHit.GetActor();
-				enemy->GetDamage(_damage);
-				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, FString::Printf(TEXT("Toucher : ")));
+				if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
+				{
+					AEnemy* enemy = (AEnemy*)OutHit.GetActor();
+					enemy->GetDamage(_damage);
+				}
 			}
 		}
-	}
 
-	// try and play the sound if specified
-	if (FireSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
-	// try and play a firing animation if specified
-	if (FireAnimation != nullptr)
-	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if (AnimInstance != nullptr)
+		// try and play the sound if specified
+		if (FireSound != nullptr)
 		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 		}
-	}
-}
 
+		// try and play a firing animation if specified
+		if (FireAnimation != nullptr)
+		{
+			// Get the animation object for the arms mesh
+			UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+			if (AnimInstance != nullptr)
+			{
+				AnimInstance->Montage_Play(FireAnimation, 1.f);
+			}
+		}
+
+	}
+	else {
+		// Attendre quelques secondes que ce soit rechargé
+		UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
+	}
+
+}
 
 void AUnreal_CppCharacter::ShootToTrue()
 {
@@ -189,6 +203,13 @@ void AUnreal_CppCharacter::ShootToTrue()
 void AUnreal_CppCharacter::ShootToFalse()
 {
 	_shoot = false;
+}
+
+void AUnreal_CppCharacter::Reload()
+{
+	UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
+	_ammo = 30;
+	// Utiliser le _reloadTime pour mettre un délai sur le reload lol 
 }
 
 // Called every frame
