@@ -22,17 +22,17 @@ class UNREAL_CPP_API AEnemy : public AActor
 	FVector PlayerLocation;
 
 	UPROPERTY(EditDefaultsOnly)
-	float MovementSpeed = .5f;
-	
-	UPROPERTY(EditDefaultsOnly)
-	float RotationSpeed = 200.f;
+		float MovementSpeed = .5f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float _life = 1.0f;
+		float RotationSpeed = 200.f;
+
+	UPROPERTY(EditDefaultsOnly)
+		float _life = 1.0f;
 
 	bool IsDying = false;
 
-public:	
+public:
 	// Sets default values for this actor's properties
 	AEnemy();
 
@@ -40,10 +40,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	bool GetDamage(float damage);
+
+	void SetMoveSpeed(float NewMSpeed) { MovementSpeed = NewMSpeed; }
+	void SetRotateSpeed(float NewRSpeed) { RotationSpeed = NewRSpeed; }
+
+	UAnimSequence* GetDeathAnim() { return DeathAnimation; }
 
 };

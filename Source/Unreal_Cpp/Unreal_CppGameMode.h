@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "Unreal_CppGameMode.generated.h"
 
+class AEnemy;
+
 UCLASS(minimalapi)
 class AUnreal_CppGameMode : public AGameModeBase
 {
@@ -13,6 +15,8 @@ class AUnreal_CppGameMode : public AGameModeBase
 
 public:
 	AUnreal_CppGameMode();
+
+	void DestroyEnemy(AEnemy* Enemy);
 };
 
 

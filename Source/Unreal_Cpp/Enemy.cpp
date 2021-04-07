@@ -46,16 +46,6 @@ bool AEnemy::GetDamage(float damage)
 	if (_life <= 0 && !IsDying)
 	{
 		IsDying = true;
-		if (USkeletalMeshComponent* Mesh = FindComponentByClass<USkeletalMeshComponent>())
-		{
-			Mesh->PlayAnimation(DeathAnimation, false);
-			MovementSpeed = 0;
-			RotationSpeed = 0;
-		}
-		FTimerHandle handle;
-		GetWorld()->GetTimerManager().SetTimer(handle, [this]() {
-			Destroy();
-		}, DeathAnimation->SequenceLength, 0);
 
 		return true;
 	}

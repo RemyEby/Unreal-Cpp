@@ -12,7 +12,7 @@
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Enemy.h"
-#include <iostream>
+#include <Unreal_Cpp/Unreal_CppGameMode.h>
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -168,7 +168,11 @@ void AUnreal_CppCharacter::OnFire()
 					if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
 					{
 						AEnemy* enemy = (AEnemy*)OutHit.GetActor();
-						enemy->GetDamage(_damage);
+						if (enemy->GetDamage(_damage))
+						{
+							AUnreal_CppGameMode* GameMode = (AUnreal_CppGameMode*)GetWorld()->GetAuthGameMode();
+							GameMode->DestroyEnemy(enemy);
+						}
 					}
 				}
 			}
