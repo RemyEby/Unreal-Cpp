@@ -16,6 +16,9 @@ class UNREAL_CPP_API ASpawner : public AActor
 	UPROPERTY(EditAnywhere)
 	float TimeBetweenSpawn = 2.5f;
 
+	UPROPERTY(EditAnywhere)
+	int EnemiesToSpawn = 5;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AEnemy> ActorToSpawn;
 	

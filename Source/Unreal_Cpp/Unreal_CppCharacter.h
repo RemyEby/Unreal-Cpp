@@ -13,6 +13,7 @@ class UCameraComponent;
 class UMotionControllerComponent;
 class UAnimMontage;
 class USoundBase;
+class AWeapon;
 
 UCLASS(config=Game)
 class AUnreal_CppCharacter : public ACharacter
@@ -58,13 +59,22 @@ class AUnreal_CppCharacter : public ACharacter
 	UMotionControllerComponent* L_MotionController;
 
 	UPROPERTY(EditDefaultsOnly)
+	AWeapon* RifleGun;
+
+	//AWeapon* CurrentWeapon = RifleGun;
+
+	UPROPERTY(EditDefaultsOnly)
+	float _life = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly)
 	float _damage = 5.0f;
 
 	UPROPERTY(EditDefaultsOnly)
 	float _rifleCooldwn = .2f;
 
 	UPROPERTY(EditDefaultsOnly)
-	int _ammo = 30;
+	int _maxAmmo = 30;
+	int _ammo = _maxAmmo;
 
 	UPROPERTY(EditDefaultsOnly)
 	float _reloadTime = 2.f;
@@ -176,5 +186,6 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	bool GetDamage(float);
 };
 

@@ -13,6 +13,7 @@
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "Enemy.h"
 #include <Unreal_Cpp/Unreal_CppGameMode.h>
+#include "Weapon.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -223,10 +224,24 @@ void AUnreal_CppCharacter::Reload()
 		
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, [this]() {
-			_ammo = 30;
+			_ammo = _maxAmmo;
 			_isReloading = false;
 		}, 2.5f, 0);
 	}
+}
+
+bool AUnreal_CppCharacter::GetDamage(float damage)
+{
+	_life -= damage;
+
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%f"), _life));
+
+	if (_life <= 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("FAUT RELANCER LE JEU")));
+		return true;
+	}
+	return false;
 }
 
 // Called every frame

@@ -17,20 +17,32 @@ class UNREAL_CPP_API AEnemy : public AActor
 	USkeletalMeshComponent* MeshEnemy;
 
 	UPROPERTY(EditDefaultsOnly, Category = Mesh)
+	UAnimSequence* RunAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = Mesh)
 	UAnimSequence* DeathAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = Mesh)
+	UAnimSequence* AttackAnimation;
 
 	FVector PlayerLocation;
 
 	UPROPERTY(EditDefaultsOnly)
-		float MovementSpeed = .5f;
+	float InitialMovementSpeed = 300.f;
+	float MovementSpeed = InitialMovementSpeed;
 
 	UPROPERTY(EditDefaultsOnly)
-		float RotationSpeed = 200.f;
+	float InitialRotationSpeed = 200.f;
+	float RotationSpeed = InitialRotationSpeed;
 
 	UPROPERTY(EditDefaultsOnly)
-		float _life = 1.0f;
+	float _life = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float _damage = 2.0f;
 
 	bool IsDying = false;
+	bool IsAttacking = false;
 
 public:
 	// Sets default values for this actor's properties
@@ -50,5 +62,7 @@ public:
 	void SetRotateSpeed(float NewRSpeed) { RotationSpeed = NewRSpeed; }
 
 	UAnimSequence* GetDeathAnim() { return DeathAnimation; }
+
+	void Attack();
 
 };

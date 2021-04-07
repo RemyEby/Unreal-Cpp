@@ -4,6 +4,7 @@
 #include "Enemy.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include <Unreal_Cpp/Unreal_CppCharacter.h>
 
 // Sets default values
 AEnemy::AEnemy()
@@ -28,6 +29,7 @@ void AEnemy::Tick(float DeltaTime)
 
 	// Calcul des location et rotation entre le player et l'actor
 	FVector Direction = PlayerLocation - GetActorLocation();
+	Direction.Normalize();
 	FVector TargetLocation = GetActorLocation() + (Direction * DeltaTime * MovementSpeed);
 	FRotator Rotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerLocation);
 	FRotator TargetRotation = FMath::RInterpTo(GetActorRotation(), Rotation, DeltaTime, RotationSpeed);
@@ -37,6 +39,13 @@ void AEnemy::Tick(float DeltaTime)
 	FRotator NewRotation = FRotator(0.0f, TargetRotation.Yaw - 90.0f, 0.0f); // On ajoute -90.f pour que l'actor soit bien en face de la direction dans laquelle il va.
 	SetActorLocationAndRotation(NewLocation, NewRotation, false, 0, ETeleportType::None); // l'actor se dirige vers le player en le regardant toujours en face
 
+	float Distance = FVector::Dist(PlayerLocation, GetActorLocation());
+	UE_LOG(LogTemp, Log, TEXT("%f"), Distance);
+	if (Distance <= 200 && !IsAttacking && !IsDying)
+	{
+		Attack();
+	}
+	
 }
 
 bool AEnemy::GetDamage(float damage)
@@ -50,4 +59,30 @@ bool AEnemy::GetDamage(float damage)
 		return true;
 	}
 	return false;
+}
+
+void AEnemy::Attack()
+{
+	IsAttacking = true;
+
+	if (USkeletalMeshComponent* Mesh = FindComponentByClass<USkeletalMeshComponent>())
+	{
+		Mesh->PlayAnimation(AttackAnimation, false);
+		SetMoveSpeed(0);
+		SetRotateSpeed(0);
+
+		FTimerHandle handle;
+		GetWorld()->GetTimerManager().SetTimer(handle, [this, Mesh]() {
+			if (!IsDying)
+			{
+				Mesh->PlayAnimation(RunAnimation, true);
+				SetMoveSpeed(InitialMovementSpeed);
+				SetRotateSpeed(InitialRotationSpeed);
+				IsAttacking = false;
+			}
+		}, AttackAnimation->SequenceLength, 0);
+		
+		AUnreal_CppCharacter* Player = (AUnreal_CppCharacter*)GetWorld()->GetFirstPlayerController()->GetPawn();
+		Player->GetDamage(_damage);
+	}
 }

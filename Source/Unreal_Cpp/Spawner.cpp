@@ -31,9 +31,18 @@ void ASpawner::Tick(float DeltaTime)
 void ASpawner::SpawnEnemy()
 {
 	FTimerHandle handle;
-	GetWorld()->GetTimerManager().SetTimer(handle, [this]() {
-		FActorSpawnParameters SpawnInfo;
-		AEnemy* const SpawnedActor = GetWorld()->SpawnActor<AEnemy>(ActorToSpawn, GetActorLocation(), GetActorRotation(), SpawnInfo);
+	GetWorld()->GetTimerManager().SetTimer(handle, [this, &handle]() {
+		if (EnemiesToSpawn > 0)
+		{
+			FActorSpawnParameters SpawnInfo;
+			AEnemy* const SpawnedActor = GetWorld()->SpawnActor<AEnemy>(ActorToSpawn, GetActorLocation(), GetActorRotation(), SpawnInfo);
+
+			EnemiesToSpawn--;
+		}
+		else
+		{
+			GetWorldTimerManager().ClearTimer(handle);
+		}
 		
 	}, TimeBetweenSpawn, 1);
 }
