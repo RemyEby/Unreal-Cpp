@@ -30,6 +30,7 @@ class UNREAL_CPP_API AEnemy : public AActor
 	UPROPERTY(EditDefaultsOnly)
 	float _life = 1.0f;
 
+	bool IsDying = false;
 
 public:	
 	// Sets default values for this actor's properties

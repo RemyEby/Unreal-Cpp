@@ -43,8 +43,9 @@ bool AEnemy::GetDamage(float damage)
 {
 	_life -= damage;
 
-	if (_life <= 0)
+	if (_life <= 0 && !IsDying)
 	{
+		IsDying = true;
 		if (USkeletalMeshComponent* Mesh = FindComponentByClass<USkeletalMeshComponent>())
 		{
 			Mesh->PlayAnimation(DeathAnimation, false);
