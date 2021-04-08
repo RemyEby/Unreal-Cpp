@@ -3,6 +3,9 @@
 
 #include "Weapon.h"
 #include "Kismet/GameplayStatics.h"
+#include "Unreal_Cpp/Unreal_CppCharacter.h"
+#include "Unreal_Cpp/Enemy.h"
+#include "Unreal_Cpp/Unreal_CppGameMode.h"
 
 // Sets default values
 AWeapon::AWeapon()

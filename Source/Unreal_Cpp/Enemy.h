@@ -41,6 +41,9 @@ class UNREAL_CPP_API AEnemy : public AActor
 	UPROPERTY(EditDefaultsOnly)
 	float _damage = 2.0f;
 
+	UPROPERTY(EditDefaultsOnly)
+	float _attackRange = 250.f;
+
 	bool IsDying = false;
 	bool IsAttacking = false;
 

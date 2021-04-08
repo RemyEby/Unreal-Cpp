@@ -44,17 +44,26 @@ AUnreal_CppCharacter::AUnreal_CppCharacter()
 	Mesh1P->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
 
-	// Create a gun mesh component
-	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
-	FP_Gun->bCastDynamicShadow = false;
-	FP_Gun->CastShadow = false;
-	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	FP_Gun->SetupAttachment(RootComponent);
+	//// Create a gun mesh component
+	//FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
+	//FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
+	//FP_Gun->bCastDynamicShadow = false;
+	//FP_Gun->CastShadow = false;
+	//// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	//FP_Gun->SetupAttachment(RootComponent);
 
-	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
-	FP_MuzzleLocation->SetupAttachment(FP_Gun);
-	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
+	//// Create a gun mesh component
+	//FP_Gun2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun2"));
+	//FP_Gun2->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
+	//FP_Gun2->bCastDynamicShadow = false;
+	//FP_Gun2->CastShadow = false;
+	//// FP_Gun2->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	//FP_Gun2->SetupAttachment(RootComponent);
+	//FP_Gun2->SetVisibility(false);
+
+	//FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
+	//FP_MuzzleLocation->SetupAttachment(FP_Gun);
+	//FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
 
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
@@ -69,20 +78,6 @@ AUnreal_CppCharacter::AUnreal_CppCharacter()
 	L_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("L_MotionController"));
 	L_MotionController->SetupAttachment(RootComponent);
 
-	// Create a gun and attach it to the right-hand VR controller.
-	// Create a gun mesh component
-	VR_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VR_Gun"));
-	VR_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
-	VR_Gun->bCastDynamicShadow = false;
-	VR_Gun->CastShadow = false;
-	VR_Gun->SetupAttachment(R_MotionController);
-	VR_Gun->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-
-	VR_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("VR_MuzzleLocation"));
-	VR_MuzzleLocation->SetupAttachment(VR_Gun);
-	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));	
-	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));		// Counteract the rotation of the VR gun model.
-
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
 }
@@ -93,18 +88,18 @@ void AUnreal_CppCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
-	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	/*FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	FP_Gun2->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	FP_Gun2->SetHiddenInGame(true);*/
 
-	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
-	if (bUsingMotionControllers)
+	_ammo = _maxAmmo;
+	_timer = _rifleCooldwn;
+
+	for (auto i = 0; i < LAWeapons.Num(); i++)
 	{
-		VR_Gun->SetHiddenInGame(false, true);
-		Mesh1P->SetHiddenInGame(true, true);
-	}
-	else
-	{
-		VR_Gun->SetHiddenInGame(true, true);
-		Mesh1P->SetHiddenInGame(false, true);
+		AWeapon* tempWeapon = GetWorld()->SpawnActor<AWeapon>(LAWeapons[i]);
+		tempWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		TAWeapon.Add(tempWeapon);
 	}
 }
 
@@ -120,10 +115,11 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	// Bind fire event
+	// Bind weapon event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AUnreal_CppCharacter::ShootToTrue);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AUnreal_CppCharacter::ShootToFalse);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AUnreal_CppCharacter::Reload);
+	PlayerInputComponent->BindAction("SwitchWeapon", IE_Pressed, this, &AUnreal_CppCharacter::SwitchWeapon);
 
 	// Enable touchscreen input
 	EnableTouchscreenMovement(PlayerInputComponent);
@@ -145,63 +141,63 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 void AUnreal_CppCharacter::OnFire()
 {
-	if (!_isReloading)
-	{
-		if (_ammo > 0)
-		{
-			_ammo--;
-
-			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%d /30 ammo"), _ammo));
-			UE_LOG(LogTemp, Warning, TEXT("%d"), _ammo);
-
-			// try and fire a projectile
-			auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
-			auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
-
-			FHitResult OutHit;
-			FCollisionQueryParams Collisions;
-
-			if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
-				if (pMuzzleParticle) {
-					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
-					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
-			
-					if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
-					{
-						AEnemy* enemy = (AEnemy*)OutHit.GetActor();
-						if (enemy->GetDamage(_damage))
-						{
-							AUnreal_CppGameMode* GameMode = (AUnreal_CppGameMode*)GetWorld()->GetAuthGameMode();
-							GameMode->DestroyEnemy(enemy);
-						}
-					}
-				}
-			}
-
-			// try and play the sound if specified
-			if (FireSound != nullptr)
-			{
-				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-			}
-
-			// try and play a firing animation if specified
-			if (FireAnimation != nullptr)
-			{
-				// Get the animation object for the arms mesh
-				UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-				if (AnimInstance != nullptr)
-				{
-					AnimInstance->Montage_Play(FireAnimation, 1.f);
-				}
-			}
-
-		}
-		else {
-			// Attendre quelques secondes que ce soit rechargé
-			UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
-			Reload();
-		}
-	}
+//	if (!_isReloading)
+//	{
+//		if (_ammo > 0)
+//		{
+//			_ammo--;
+//
+//			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%d /30 ammo"), _ammo));
+//			UE_LOG(LogTemp, Warning, TEXT("%d"), _ammo);
+//
+//			// try and fire a projectile
+//			auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
+//			auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
+//
+//			FHitResult OutHit;
+//			FCollisionQueryParams Collisions;
+//
+//			if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
+//				if (pMuzzleParticle) {
+//					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
+//					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
+//
+//					if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
+//					{
+//						AEnemy* enemy = (AEnemy*)OutHit.GetActor();
+//						if (enemy->GetDamage(_damage))
+//						{
+//							AUnreal_CppGameMode* GameMode = (AUnreal_CppGameMode*)GetWorld()->GetAuthGameMode();
+//							GameMode->DestroyEnemy(enemy);
+//						}
+//					}
+//				}
+//			}
+//
+//			// try and play the sound if specified
+//			if (FireSound != nullptr)
+//			{
+//				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+//			}
+//
+//			// try and play a firing animation if specified
+//			if (FireAnimation != nullptr)
+//			{
+//				// Get the animation object for the arms mesh
+//				UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+//				if (AnimInstance != nullptr)
+//				{
+//					AnimInstance->Montage_Play(FireAnimation, 1.f);
+//				}
+//			}
+//
+//		}
+//		else {
+//			// Attendre quelques secondes que ce soit rechargé
+//			UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
+//			Reload();
+//		}
+//	}
 }
 
 void AUnreal_CppCharacter::ShootToTrue()
@@ -230,6 +226,22 @@ void AUnreal_CppCharacter::Reload()
 	}
 }
 
+void AUnreal_CppCharacter::SwitchWeapon()
+{
+	/*if (FP_Gun2->bHiddenInGame)
+	{
+		FP_Gun->SetHiddenInGame(true);
+		FP_Gun2->SetHiddenInGame(false);
+		iCurrentWeapon = 1;
+	}
+	else
+	{
+		FP_Gun2->SetHiddenInGame(true);
+		FP_Gun->SetHiddenInGame(false);
+		iCurrentWeapon = 0;
+	}*/
+}
+
 bool AUnreal_CppCharacter::GetDamage(float damage)
 {
 	_life -= damage;
@@ -238,7 +250,6 @@ bool AUnreal_CppCharacter::GetDamage(float damage)
 
 	if (_life <= 0)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("FAUT RELANCER LE JEU")));
 		return true;
 	}
 	return false;
@@ -250,11 +261,11 @@ void AUnreal_CppCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	_timer += DeltaTime;
-	if (_shoot)
+	if (_shoot) // Si le joueur tire
 	{
-		if (_timer >= _rifleCooldwn)
+		if (_timer >= _rifleCooldwn) 
 		{
-			OnFire();
+			//OnFire();
 			_timer = 0;
 		}
 	}

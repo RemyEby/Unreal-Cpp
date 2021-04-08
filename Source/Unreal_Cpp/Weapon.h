@@ -24,11 +24,14 @@ class UNREAL_CPP_API AWeapon : public AActor
 	UPROPERTY(EditDefaultsOnly)
 	float _reloadTime = 2.5f;
 
-	UPROPERTY(EditAnywhere, Category = Gameplay)
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	USoundBase* FireSound;
 
-	UPROPERTY(EditAnywhere, Category = Gameplay)
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	USoundBase* ReloadSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool _AutomaticWeapon;
 
 	bool _shoot = false;
 	bool _isReloading = false;
@@ -55,6 +58,6 @@ public:
 	bool GetBoolIsReloading() { return _isReloading; }
 	void SetBoolIsReloading(bool b) { _isReloading = b; }
 
-	virtual void OnFire();
+	void OnFire();
 	void Reloading();
 };

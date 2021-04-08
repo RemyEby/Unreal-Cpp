@@ -34,17 +34,13 @@ class AUnreal_CppCharacter : public ACharacter
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* FP_Gun;
 
+	/** Gun mesh: 1st person view (seen only by self) */
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	USkeletalMeshComponent* FP_Gun2;
+
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USceneComponent* FP_MuzzleLocation;
-
-	/** Gun mesh: VR view (attached to the VR controller directly, no arm, just the actual gun) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	USkeletalMeshComponent* VR_Gun;
-
-	/** Location on VR gun mesh where projectiles should spawn. */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	USceneComponent* VR_MuzzleLocation;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -59,11 +55,6 @@ class AUnreal_CppCharacter : public ACharacter
 	UMotionControllerComponent* L_MotionController;
 
 	UPROPERTY(EditDefaultsOnly)
-	AWeapon* RifleGun;
-
-	//AWeapon* CurrentWeapon = RifleGun;
-
-	UPROPERTY(EditDefaultsOnly)
 	float _life = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -74,14 +65,20 @@ class AUnreal_CppCharacter : public ACharacter
 
 	UPROPERTY(EditDefaultsOnly)
 	int _maxAmmo = 30;
-	int _ammo = _maxAmmo;
+	int _ammo;
 
 	UPROPERTY(EditDefaultsOnly)
 	float _reloadTime = 2.f;
 
-	float _timer = 0.f;
+	float _timer;
 	bool _shoot = false;
 	bool _isReloading = false;
+
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TSubclassOf <class AWeapon> > LAWeapons; // Liste des scriptables objects
+	int iCurrentWeapon = 0;
+	TArray<AWeapon*> TAWeapon; // Liste des armes pour accéder à leurs properties
 
 public:
 	AUnreal_CppCharacter();
@@ -127,11 +124,15 @@ protected:
 	
 	/** Fires a projectile. */
 	void OnFire();
+	void OnFireGun0();
+	void OnFireGun1();
 
 	void ShootToTrue();
 	void ShootToFalse();
 
 	void Reload();
+
+	void SwitchWeapon();
 
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();

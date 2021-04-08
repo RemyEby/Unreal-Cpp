@@ -40,8 +40,7 @@ void AEnemy::Tick(float DeltaTime)
 	SetActorLocationAndRotation(NewLocation, NewRotation, false, 0, ETeleportType::None); // l'actor se dirige vers le player en le regardant toujours en face
 
 	float Distance = FVector::Dist(PlayerLocation, GetActorLocation());
-	UE_LOG(LogTemp, Log, TEXT("%f"), Distance);
-	if (Distance <= 200 && !IsAttacking && !IsDying)
+	if (Distance <= _attackRange && !IsAttacking && !IsDying)
 	{
 		Attack();
 	}
