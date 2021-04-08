@@ -44,27 +44,6 @@ AUnreal_CppCharacter::AUnreal_CppCharacter()
 	Mesh1P->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
 
-	// Create a gun mesh component
-	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
-	FP_Gun->bCastDynamicShadow = false;
-	FP_Gun->CastShadow = false;
-	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	FP_Gun->SetupAttachment(RootComponent);
-
-	//// Create a gun mesh component
-	//FP_Gun2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun2"));
-	//FP_Gun2->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
-	//FP_Gun2->bCastDynamicShadow = false;
-	//FP_Gun2->CastShadow = false;
-	//// FP_Gun2->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	//FP_Gun2->SetupAttachment(RootComponent);
-	//FP_Gun2->SetVisibility(false);
-
-	/*FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
-	FP_MuzzleLocation->SetupAttachment(FP_Gun);
-	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));*/
-
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
@@ -89,8 +68,6 @@ void AUnreal_CppCharacter::BeginPlay()
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	//FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
-	/*FP_Gun2->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
-	FP_Gun2->SetHiddenInGame(true);*/
 
 	_ammo = _maxAmmo;
 	_timer = _rifleCooldwn;
@@ -148,7 +125,11 @@ void AUnreal_CppCharacter::Shoot()
 	}
 	else
 	{
-		TAWeapon[iCurrentWeapon]->OnFire(FirstPersonCameraComponent, pMuzzleParticle, pImpactParticle, FireAnimation, Mesh1P);
+		if (_timer >= TAWeapon[iCurrentWeapon]->GetFireRate())
+		{
+			TAWeapon[iCurrentWeapon]->OnFire(FirstPersonCameraComponent, pMuzzleParticle, pImpactParticle, FireAnimation, Mesh1P);
+			_timer = 0;
+		}
 	}
 }
 
