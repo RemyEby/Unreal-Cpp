@@ -17,6 +17,8 @@ void ASpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
+	RemainingEnemies = EnemiesPerWave;
+
 	SpawnEnemy();
 }
 
@@ -27,22 +29,30 @@ void ASpawner::Tick(float DeltaTime)
 	
 }
 
-
 void ASpawner::SpawnEnemy()
 {
-	FTimerHandle handle;
-	GetWorld()->GetTimerManager().SetTimer(handle, [this, &handle]() {
-		if (EnemiesToSpawn > 0)
-		{
-			FActorSpawnParameters SpawnInfo;
-			AEnemy* const SpawnedActor = GetWorld()->SpawnActor<AEnemy>(ActorToSpawn, GetActorLocation(), GetActorRotation(), SpawnInfo);
 
-			EnemiesToSpawn--;
+	GetWorld()->GetTimerManager().SetTimer(WaveTimer, [this]() {
+		if (NumOfWaves > 0) {
+			GetWorld()->GetTimerManager().SetTimer(EnemyTimer, [this]() {
+				if (RemainingEnemies > 0)
+				{
+					FActorSpawnParameters SpawnInfo;
+					AEnemy* const SpawnedActor = GetWorld()->SpawnActor<AEnemy>(ActorToSpawn, GetActorLocation(), GetActorRotation(), SpawnInfo);
+
+					RemainingEnemies--;
+				}
+				else
+				{
+					NumOfWaves--;
+					RemainingEnemies = EnemiesPerWave;
+					GetWorld()->GetTimerManager().ClearTimer(EnemyTimer);
+				}
+			}, TimeBetweenSpawn, 1);
 		}
-		else
-		{
-			GetWorldTimerManager().ClearTimer(handle);
+		else {
+			GetWorld()->GetTimerManager().ClearTimer(WaveTimer);
+
 		}
-		
-	}, TimeBetweenSpawn, 1);
+	}, TimeBetweenWave, 1);
 }

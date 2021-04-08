@@ -14,13 +14,24 @@ class UNREAL_CPP_API ASpawner : public AActor
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	float TimeBetweenSpawn = 2.5f;
+	float TimeBetweenSpawn = 1.f;
 
 	UPROPERTY(EditAnywhere)
-	int EnemiesToSpawn = 5;
+	float TimeBetweenWave = 10.f;
+
+	UPROPERTY(EditAnywhere)
+	int EnemiesPerWave = 5;
+	int RemainingEnemies;
+
+	UPROPERTY(EditAnywhere)
+	int NumOfWaves = 3;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AEnemy> ActorToSpawn;
+
+	FTimerHandle WaveTimer;
+
+	FTimerHandle EnemyTimer;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -35,5 +46,4 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SpawnEnemy();
-
 };
