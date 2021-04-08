@@ -6,23 +6,33 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class UCameraComponent;
+class UAnimMontage;
+class USkeletalMeshComponent;
+
 UCLASS()
 class UNREAL_CPP_API AWeapon : public AActor
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
+	int _weaponID = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
 	float _damage = 5.0f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
 	float _fireRate = .2f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
 	int _maxAmmo = 30;
-	int _ammo = _maxAmmo;
+	int _ammo;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
 	float _reloadTime = 2.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
+	bool _AutomaticWeapon;
 
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	USoundBase* FireSound;
@@ -30,11 +40,9 @@ class UNREAL_CPP_API AWeapon : public AActor
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	USoundBase* ReloadSound;
 
-	UPROPERTY(EditDefaultsOnly)
-	bool _AutomaticWeapon;
-
-	bool _shoot = false;
 	bool _isReloading = false;
+
+	USkeletalMeshComponent* SKMesh;
 
 public:	
 	// Sets default values for this actor's properties
@@ -48,16 +56,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	int GetWeaponID() { return _weaponID; }
 	float GetDamage() { return _damage; }
 	float GetFireRate() { return _fireRate; }
 	int GetMaxAmmo() { return _ammo; }
 	float GetReloadTime() { return _reloadTime; }
+	USkeletalMeshComponent* GetSKMesh() { return SKMesh; }
+	bool GetIsAutomatic() { return _AutomaticWeapon; }
 	
-	bool GetBoolShoot() { return _shoot; }
-	void SetBoolShoot(bool b) { _shoot = b; }
 	bool GetBoolIsReloading() { return _isReloading; }
 	void SetBoolIsReloading(bool b) { _isReloading = b; }
 
-	void OnFire();
+	void OnFire(UCameraComponent* , UParticleSystem* , UParticleSystem* , UAnimMontage* , USkeletalMeshComponent*);
 	void Reloading();
 };

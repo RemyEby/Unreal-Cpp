@@ -122,12 +122,7 @@ public:
 
 protected:
 	
-	/** Fires a projectile. */
-	void OnFire();
-	void OnFireGun0();
-	void OnFireGun1();
-
-	void ShootToTrue();
+	void Shoot();
 	void ShootToFalse();
 
 	void Reload();

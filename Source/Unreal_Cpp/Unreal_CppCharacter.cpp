@@ -44,13 +44,13 @@ AUnreal_CppCharacter::AUnreal_CppCharacter()
 	Mesh1P->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
 
-	//// Create a gun mesh component
-	//FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	//FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
-	//FP_Gun->bCastDynamicShadow = false;
-	//FP_Gun->CastShadow = false;
-	//// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	//FP_Gun->SetupAttachment(RootComponent);
+	// Create a gun mesh component
+	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
+	FP_Gun->SetOnlyOwnerSee(false);			// otherwise won't be visible in the multiplayer
+	FP_Gun->bCastDynamicShadow = false;
+	FP_Gun->CastShadow = false;
+	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	FP_Gun->SetupAttachment(RootComponent);
 
 	//// Create a gun mesh component
 	//FP_Gun2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun2"));
@@ -61,9 +61,9 @@ AUnreal_CppCharacter::AUnreal_CppCharacter()
 	//FP_Gun2->SetupAttachment(RootComponent);
 	//FP_Gun2->SetVisibility(false);
 
-	//FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
-	//FP_MuzzleLocation->SetupAttachment(FP_Gun);
-	//FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
+	/*FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
+	FP_MuzzleLocation->SetupAttachment(FP_Gun);
+	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));*/
 
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
@@ -88,8 +88,8 @@ void AUnreal_CppCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
-	/*FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
-	FP_Gun2->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	//FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	/*FP_Gun2->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 	FP_Gun2->SetHiddenInGame(true);*/
 
 	_ammo = _maxAmmo;
@@ -99,6 +99,7 @@ void AUnreal_CppCharacter::BeginPlay()
 	{
 		AWeapon* tempWeapon = GetWorld()->SpawnActor<AWeapon>(LAWeapons[i]);
 		tempWeapon->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		if (i != 0) { tempWeapon->GetSKMesh()->SetHiddenInGame(true); }
 		TAWeapon.Add(tempWeapon);
 	}
 }
@@ -116,7 +117,7 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	// Bind weapon event
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AUnreal_CppCharacter::ShootToTrue);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AUnreal_CppCharacter::Shoot);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AUnreal_CppCharacter::ShootToFalse);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AUnreal_CppCharacter::Reload);
 	PlayerInputComponent->BindAction("SwitchWeapon", IE_Pressed, this, &AUnreal_CppCharacter::SwitchWeapon);
@@ -139,71 +140,18 @@ void AUnreal_CppCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AUnreal_CppCharacter::LookUpAtRate);
 }
 
-void AUnreal_CppCharacter::OnFire()
+void AUnreal_CppCharacter::Shoot()
 {
-//	if (!_isReloading)
-//	{
-//		if (_ammo > 0)
-//		{
-//			_ammo--;
-//
-//			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("%d /30 ammo"), _ammo));
-//			UE_LOG(LogTemp, Warning, TEXT("%d"), _ammo);
-//
-//			// try and fire a projectile
-//			auto StartLocation = FirstPersonCameraComponent->GetComponentLocation();
-//			auto EndLocation = StartLocation + FirstPersonCameraComponent->GetForwardVector() * 100000.f;
-//
-//			FHitResult OutHit;
-//			FCollisionQueryParams Collisions;
-//
-//			if (GetWorld()->UWorld::LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, Collisions)) {
-//				if (pMuzzleParticle) {
-//					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pMuzzleParticle, FP_Gun->GetSocketTransform(FName("Muzzle")));
-//					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), pImpactParticle, OutHit.ImpactPoint);
-//
-//					if (OutHit.GetActor()->GetName().Contains("Enemy_BP"))
-//					{
-//						AEnemy* enemy = (AEnemy*)OutHit.GetActor();
-//						if (enemy->GetDamage(_damage))
-//						{
-//							AUnreal_CppGameMode* GameMode = (AUnreal_CppGameMode*)GetWorld()->GetAuthGameMode();
-//							GameMode->DestroyEnemy(enemy);
-//						}
-//					}
-//				}
-//			}
-//
-//			// try and play the sound if specified
-//			if (FireSound != nullptr)
-//			{
-//				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-//			}
-//
-//			// try and play a firing animation if specified
-//			if (FireAnimation != nullptr)
-//			{
-//				// Get the animation object for the arms mesh
-//				UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-//				if (AnimInstance != nullptr)
-//				{
-//					AnimInstance->Montage_Play(FireAnimation, 1.f);
-//				}
-//			}
-//
-//		}
-//		else {
-//			// Attendre quelques secondes que ce soit rechargé
-//			UE_LOG(LogTemp, Warning, TEXT("RELOAD"), _ammo);
-//			Reload();
-//		}
-//	}
+	if (TAWeapon[iCurrentWeapon]->GetIsAutomatic())
+	{
+		_shoot = true;
+	}
+	else
+	{
+		TAWeapon[iCurrentWeapon]->OnFire(FirstPersonCameraComponent, pMuzzleParticle, pImpactParticle, FireAnimation, Mesh1P);
+	}
 }
 
-void AUnreal_CppCharacter::ShootToTrue()
-{
-	_shoot = true;
-}
 void AUnreal_CppCharacter::ShootToFalse()
 {
 	_shoot = false;
@@ -211,35 +159,27 @@ void AUnreal_CppCharacter::ShootToFalse()
 
 void AUnreal_CppCharacter::Reload()
 {
-	if (!_isReloading)
-	{
-		_isReloading = true;
-		_ammo = 0;
-		UE_LOG(LogTemp, Warning, TEXT("RELOADING ..."), _ammo);
-		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation());
-		
-		FTimerHandle handle;
-		GetWorld()->GetTimerManager().SetTimer(handle, [this]() {
-			_ammo = _maxAmmo;
-			_isReloading = false;
-		}, 2.5f, 0);
-	}
+	TAWeapon[iCurrentWeapon]->Reloading();
 }
 
 void AUnreal_CppCharacter::SwitchWeapon()
 {
-	/*if (FP_Gun2->bHiddenInGame)
-	{
-		FP_Gun->SetHiddenInGame(true);
-		FP_Gun2->SetHiddenInGame(false);
-		iCurrentWeapon = 1;
-	}
-	else
-	{
-		FP_Gun2->SetHiddenInGame(true);
-		FP_Gun->SetHiddenInGame(false);
+	iCurrentWeapon++;
+
+	if (iCurrentWeapon % TAWeapon.Num() == 0)
 		iCurrentWeapon = 0;
-	}*/
+
+	for (auto i = 0; i < TAWeapon.Num(); i++)
+	{
+		if (i != iCurrentWeapon)
+		{
+			TAWeapon[i]->GetSKMesh()->SetHiddenInGame(true);
+		}
+		else
+		{
+			TAWeapon[iCurrentWeapon]->GetSKMesh()->SetHiddenInGame(false);
+		}
+	}
 }
 
 bool AUnreal_CppCharacter::GetDamage(float damage)
@@ -263,9 +203,9 @@ void AUnreal_CppCharacter::Tick(float DeltaTime)
 	_timer += DeltaTime;
 	if (_shoot) // Si le joueur tire
 	{
-		if (_timer >= _rifleCooldwn) 
+		if (_timer >= TAWeapon[iCurrentWeapon]->GetFireRate()) 
 		{
-			//OnFire();
+			TAWeapon[iCurrentWeapon]->OnFire(FirstPersonCameraComponent, pMuzzleParticle, pImpactParticle, FireAnimation, Mesh1P);
 			_timer = 0;
 		}
 	}
@@ -278,7 +218,7 @@ void AUnreal_CppCharacter::OnResetVR()
 
 void AUnreal_CppCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
-	if (TouchItem.bIsPressed == true)
+	/*if (TouchItem.bIsPressed == true)
 	{
 		return;
 	}
@@ -289,16 +229,16 @@ void AUnreal_CppCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const
 	TouchItem.bIsPressed = true;
 	TouchItem.FingerIndex = FingerIndex;
 	TouchItem.Location = Location;
-	TouchItem.bMoved = false;
+	TouchItem.bMoved = false;*/
 }
 
 void AUnreal_CppCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
-	if (TouchItem.bIsPressed == false)
+	/*if (TouchItem.bIsPressed == false)
 	{
 		return;
 	}
-	TouchItem.bIsPressed = false;
+	TouchItem.bIsPressed = false;*/
 }
 
 //Commenting this section out to be consistent with FPS BP template.
