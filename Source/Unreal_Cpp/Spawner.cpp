@@ -3,6 +3,7 @@
 
 #include "Spawner.h"
 #include <Unreal_Cpp/Enemy.h>
+#include "Unreal_CppGameMode.h"
 
 // Sets default values
 ASpawner::ASpawner()
@@ -17,7 +18,13 @@ void ASpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GameMode = (AUnreal_CppGameMode*)GetWorld()->GetAuthGameMode();
+	GameMode->AddSpawner(this);
+
+	
+
 	RemainingEnemies = EnemiesPerWave;
+	RemainingWaves = NumOfWaves;
 
 	SpawnEnemy();
 }
@@ -31,28 +38,37 @@ void ASpawner::Tick(float DeltaTime)
 
 void ASpawner::SpawnEnemy()
 {
-
 	GetWorld()->GetTimerManager().SetTimer(WaveTimer, [this]() {
-		if (NumOfWaves > 0) {
+		if (RemainingWaves > 0) {
 			GetWorld()->GetTimerManager().SetTimer(EnemyTimer, [this]() {
 				if (RemainingEnemies > 0)
 				{
 					FActorSpawnParameters SpawnInfo;
-					AEnemy* const SpawnedActor = GetWorld()->SpawnActor<AEnemy>(ActorToSpawn, GetActorLocation(), GetActorRotation(), SpawnInfo);
+					AEnemy* SpawnedActor = GetWorld()->SpawnActor<AEnemy>(ActorToSpawn, GetActorLocation(), GetActorRotation(), SpawnInfo);
+					GameMode->AddEnemyToList(SpawnedActor);
 
 					RemainingEnemies--;
 				}
 				else
 				{
-					NumOfWaves--;
+					RemainingWaves--;
 					RemainingEnemies = EnemiesPerWave;
 					GetWorld()->GetTimerManager().ClearTimer(EnemyTimer);
 				}
 			}, TimeBetweenSpawn, 1);
 		}
 		else {
-			GetWorld()->GetTimerManager().ClearTimer(WaveTimer);
-
-		}
+			GetWorld()->GetTimerManager().ClearTimer(WaveTimer);		}
 	}, TimeBetweenWave, 1);
+}
+
+void ASpawner::ResetSpawner()
+{
+	UE_LOG(LogTemp, Log, TEXT("Reset level"));
+	GetWorld()->GetTimerManager().ClearTimer(EnemyTimer);
+	GetWorld()->GetTimerManager().ClearTimer(WaveTimer);
+	RemainingEnemies = EnemiesPerWave;
+	RemainingWaves = NumOfWaves;
+
+	SpawnEnemy();
 }

@@ -55,6 +55,7 @@ class AUnreal_CppCharacter : public ACharacter
 	UMotionControllerComponent* L_MotionController;
 
 	UPROPERTY(EditDefaultsOnly)
+	float _maxLife = 10.0f;
 	float _life = 10.0f;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -74,6 +75,8 @@ class AUnreal_CppCharacter : public ACharacter
 	bool _shoot = false;
 	bool _isReloading = false;
 
+	FVector _InitialLocation;
+	FRotator _InitialRotation;
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<TSubclassOf <class AWeapon> > LAWeapons; // Liste des scriptables objects
@@ -183,5 +186,6 @@ public:
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 	bool GetDamage(float);
+	void ResetPlayer();
 };
 

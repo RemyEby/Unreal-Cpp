@@ -69,8 +69,12 @@ void AUnreal_CppCharacter::BeginPlay()
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	//FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
+	_InitialLocation = GetActorLocation();
+	_InitialRotation = GetActorRotation();
+	UE_LOG(LogTemp, Log, TEXT("%f, %f, %f"), _InitialRotation.Roll, _InitialRotation.Pitch, _InitialRotation.Yaw);
 	_ammo = _maxAmmo;
 	_timer = _rifleCooldwn;
+	_life = _maxLife;
 
 	for (auto i = 0; i < LAWeapons.Num(); i++)
 	{
@@ -171,9 +175,22 @@ bool AUnreal_CppCharacter::GetDamage(float damage)
 
 	if (_life <= 0)
 	{
+		AUnreal_CppGameMode* GameMode = (AUnreal_CppGameMode*)GetWorld()->GetAuthGameMode();
+		GameMode->ReloadLevel();
+
 		return true;
 	}
 	return false;
+}
+
+void AUnreal_CppCharacter::ResetPlayer()
+{
+	SetActorLocation(_InitialLocation);
+	_life = _maxLife;
+	for (auto i = 0; i < TAWeapon.Num(); i++)
+	{
+		TAWeapon[i]->Reloading();
+	}
 }
 
 // Called every frame

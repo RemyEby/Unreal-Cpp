@@ -7,6 +7,7 @@
 #include "Spawner.generated.h"
 
 class AEnemy;
+class AUnreal_CppGameMode;
 
 UCLASS()
 class UNREAL_CPP_API ASpawner : public AActor
@@ -25,6 +26,7 @@ class UNREAL_CPP_API ASpawner : public AActor
 
 	UPROPERTY(EditAnywhere)
 	int NumOfWaves = 3;
+	int RemainingWaves;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AEnemy> ActorToSpawn;
@@ -32,6 +34,8 @@ class UNREAL_CPP_API ASpawner : public AActor
 	FTimerHandle WaveTimer;
 
 	FTimerHandle EnemyTimer;
+
+	AUnreal_CppGameMode* GameMode;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -46,4 +50,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SpawnEnemy();
+	void ResetSpawner();
 };
